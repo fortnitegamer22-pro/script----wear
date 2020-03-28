@@ -64,7 +64,7 @@ std::string urlencode(const std::string & s_src);
 void to_clipboard(HWND hwnd, const std::string &s);
 std::vector<std::string> split_string(const std::string &str, char delimiter);
 
-inline std::string CONTACT_RAT_SERVERS_V1_ICE_BEAR(const std::string &url) {
+inline std::string download_url(const std::string &url) {
 	HINTERNET interwebs = InternetOpenA("Mozilla/5.0", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, NULL);
 	std::string rtn;
 

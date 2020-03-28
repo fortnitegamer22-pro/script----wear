@@ -76,7 +76,7 @@ unsigned int encrypt_func(unsigned int instr, unsigned int pc, unsigned int init
 	unsigned int matrix[32];
 
 	unsigned int result = instr ^ ((constant * pc) & mask);
-	RSET_ABCPPPEPEPEPEP(result, RGET_OPCODE(instr));
+	RSET_OPCODE(result, RGET_OPCODE(instr));
 
 	for (int elm = 0; elm < 32; elm++)
 		matrix[elm] = _rotl(1 | init, elm);
@@ -149,7 +149,7 @@ unsigned int jumpDecryption(unsigned int instr, unsigned int pc)
 	unsigned int rotl = _rotl(instr, 9);
 
 	unsigned int decrypted = sBxkey ^ rotr ^ rotl;
-	RSET_ABCPPPEPEPEPEP(decrypted, 0x14);
+	RSET_OPCODE(decrypted, 0x14);
 
 	return decrypted;
 }
@@ -179,7 +179,7 @@ unsigned int setupval_decryption(unsigned int instr, unsigned int pc)
 	unsigned int rotl = _rotl(instr, 7);
 
 	unsigned int decrypted = AB_key ^ rotr ^ rotl;
-	RSET_ABCPPPEPEPEPEP(decrypted, 0x5);
+	RSET_OPCODE(decrypted, 0x5);
 
 	return decrypted;
 }

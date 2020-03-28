@@ -15,12 +15,13 @@ extern "C" {
 #include "Lua\lstate.h"
 #include "Lua\lfunc.h"
 #include "Lua\lopcodes.h"
+	// lparser.c modified for roblox's op_closure change
 }
 
-#define DISCONNECT_ROBLOX true
+#define SYN
 
-static lua_State* L;
-static bool parented_script = false;
+static lua_State* L; //this is initialized in the main() function, located in the main.cpp file
+static bool parented_script = false; //used to indicate whether the script should be parented to the localplayers backpack or not
 static bool debug_mode = false;
 static DWORD script;
 
@@ -38,7 +39,7 @@ static DWORD script;
 #define R_SETARG_Bx(i,b)  ((i) = (((i)&MASK0(SIZE_Bx,R_POS_Bx)) | ((cast(Instruction, b)<<R_POS_Bx)&MASK1(SIZE_Bx,R_POS_Bx))))
 #define R_SETARG_sBx(i,b) R_SETARG_Bx((i),cast(Instruction, (b)+MAXARG_sBx))
 
-#define RSET_ABCPPPEPEPEPEP(i,o)	((i) = (((i) & MASK0(6, 26)) | (((Instruction)o << 26) & MASK1(6, 26))))
+#define RSET_OPCODE(i,o)	((i) = (((i) & MASK0(6, 26)) | (((Instruction)o << 26) & MASK1(6, 26))))
 #define RGET_OPCODE(i)		(i >> 26 & MASK1(6, 0))
 
 #define RSETARG_A(i,o)		((i) = (((i) & MASK0(8, 18)) | (((Instruction)o << 18) & MASK1(8, 18))))
@@ -62,47 +63,47 @@ static DWORD script;
 #define ReadLOpcode(n) (opcodes[(n)] >> SIZE_OP)
 inline int opcodes[NUM_OPCODES]
 {
-	STORE_OP(OP_LOADBOOL,  0x06 /* OP________________________________________________________________________________________________________MOVE      */),
-	STORE_OP(OP_GETTABLE,  0x04 /* OP________________________________________________________________________________________________________LOADK     */),
-	STORE_OP(OP_GETUPVAL,  0x00 /* OP________________________________________________________________________________________________________LOADBOOL  */),
-	STORE_OP(OP_SETGLOBAL, 0x07 /* OP________________________________________________________________________________________________________LOADNIL   */),
-	STORE_OP(OP_LOADK,     0x02 /* OP________________________________________________________________________________________________________GETUPVAL  */),
-	STORE_OP(OP_SETUPVAL,  0x08 /* OP________________________________________________________________________________________________________GETGLOBAL */),
-	STORE_OP(OP_MOVE,      0x01 /* OP________________________________________________________________________________________________________GETTABLE  */),
-	STORE_OP(OP_LOADNIL,   0x03 /* OP________________________________________________________________________________________________________SETGLOBAL */),
-	STORE_OP(OP_GETGLOBAL, 0x05 /* OP________________________________________________________________________________________________________SETUPVAL  */),
-	STORE_OP(OP_SELF,      0x0F /* OP________________________________________________________________________________________________________SETTABLE  */),
-	STORE_OP(OP_DIV,       0x0D /* OP________________________________________________________________________________________________________NEWTABLE  */),
-	STORE_OP(OP_SUB,       0x09 /* OP________________________________________________________________________________________________________SELF      */),
-	STORE_OP(OP_MOD,       0x10 /* OP________________________________________________________________________________________________________ADD       */),
-	STORE_OP(OP_NEWTABLE,  0x0B /* OP________________________________________________________________________________________________________SUB       */),
-	STORE_OP(OP_POW,       0x11 /* OP________________________________________________________________________________________________________MUL       */),
-	STORE_OP(OP_SETTABLE,  0x0A /* OP________________________________________________________________________________________________________DIV       */),
-	STORE_OP(OP_ADD,       0x0C /* OP________________________________________________________________________________________________________MOD       */),
-	STORE_OP(OP_MUL,       0x0E /* OP________________________________________________________________________________________________________POW       */),
-	STORE_OP(OP_LEN,       0x18 /* OP________________________________________________________________________________________________________UNM       */),
-	STORE_OP(OP_LT,        0x16 /* OP________________________________________________________________________________________________________NOT       */),
-	STORE_OP(OP_JMP,       0x12 /* OP________________________________________________________________________________________________________LEN       */),
-	STORE_OP(OP_LE,        0x19 /* OP________________________________________________________________________________________________________CONCAT    */),
-	STORE_OP(OP_NOT,       0x14 /* OP________________________________________________________________________________________________________JMP       */),
-	STORE_OP(OP_TEST,      0x1A /* OP________________________________________________________________________________________________________EQ        */),
-	STORE_OP(OP_UNM,       0x13 /* OP________________________________________________________________________________________________________LT        */),
-	STORE_OP(OP_CONCAT,    0x15 /* OP________________________________________________________________________________________________________LE        */),
-	STORE_OP(OP_EQ,        0x17 /* OP________________________________________________________________________________________________________TEST      */),
-	STORE_OP(OP_TAILCALL,  0x21 /* OP________________________________________________________________________________________________________TESTSET   */),
-	STORE_OP(OP_TFORLOOP,  0x1F /* OP________________________________________________________________________________________________________CALL      */),
-	STORE_OP(OP_FORLOOP,   0x1B /* OP________________________________________________________________________________________________________TAILCALL  */),
-	STORE_OP(OP_SETLIST,   0x22 /* OP________________________________________________________________________________________________________RETURN    */),
-	STORE_OP(OP_CALL,      0x1D /* OP________________________________________________________________________________________________________FORLOOP   */),
-	STORE_OP(OP_CLOSE,     0x23 /* OP________________________________________________________________________________________________________FORPREP   */),
-	STORE_OP(OP_TESTSET,   0x1C /* OP________________________________________________________________________________________________________TFORLOOP  */),
-	STORE_OP(OP_RETURN,    0x1E /* OP________________________________________________________________________________________________________SETLIST   */),
-	STORE_OP(OP_FORPREP,   0x20 /* OP________________________________________________________________________________________________________CLOSE     */),
-	STORE_OP(OP_VARARG,    0x25 /* OP________________________________________________________________________________________________________CLOSURE   */),
-	STORE_OP(OP_CLOSURE,   0x24 /* OP________________________________________________________________________________________________________VARARG    */),
+	STORE_OP(OP_LOADBOOL,  0x06 /* OP_MOVE      */),
+	STORE_OP(OP_GETTABLE,  0x04 /* OP_LOADK     */),
+	STORE_OP(OP_GETUPVAL,  0x00 /* OP_LOADBOOL  */),
+	STORE_OP(OP_SETGLOBAL, 0x07 /* OP_LOADNIL   */),
+	STORE_OP(OP_LOADK,     0x02 /* OP_GETUPVAL  */),
+	STORE_OP(OP_SETUPVAL,  0x08 /* OP_GETGLOBAL */),
+	STORE_OP(OP_MOVE,      0x01 /* OP_GETTABLE  */),
+	STORE_OP(OP_LOADNIL,   0x03 /* OP_SETGLOBAL */),
+	STORE_OP(OP_GETGLOBAL, 0x05 /* OP_SETUPVAL  */),
+	STORE_OP(OP_SELF,      0x0F /* OP_SETTABLE  */),
+	STORE_OP(OP_DIV,       0x0D /* OP_NEWTABLE  */),
+	STORE_OP(OP_SUB,       0x09 /* OP_SELF      */),
+	STORE_OP(OP_MOD,       0x10 /* OP_ADD       */),
+	STORE_OP(OP_NEWTABLE,  0x0B /* OP_SUB       */),
+	STORE_OP(OP_POW,       0x11 /* OP_MUL       */),
+	STORE_OP(OP_SETTABLE,  0x0A /* OP_DIV       */),
+	STORE_OP(OP_ADD,       0x0C /* OP_MOD       */),
+	STORE_OP(OP_MUL,       0x0E /* OP_POW       */),
+	STORE_OP(OP_LEN,       0x18 /* OP_UNM       */),
+	STORE_OP(OP_LT,        0x16 /* OP_NOT       */),
+	STORE_OP(OP_JMP,       0x12 /* OP_LEN       */),
+	STORE_OP(OP_LE,        0x19 /* OP_CONCAT    */),
+	STORE_OP(OP_NOT,       0x14 /* OP_JMP       */),
+	STORE_OP(OP_TEST,      0x1A /* OP_EQ        */),
+	STORE_OP(OP_UNM,       0x13 /* OP_LT        */),
+	STORE_OP(OP_CONCAT,    0x15 /* OP_LE        */),
+	STORE_OP(OP_EQ,        0x17 /* OP_TEST      */),
+	STORE_OP(OP_TAILCALL,  0x21 /* OP_TESTSET   */),
+	STORE_OP(OP_TFORLOOP,  0x1F /* OP_CALL      */),
+	STORE_OP(OP_FORLOOP,   0x1B /* OP_TAILCALL  */),
+	STORE_OP(OP_SETLIST,   0x22 /* OP_RETURN    */),
+	STORE_OP(OP_CALL,      0x1D /* OP_FORLOOP   */),
+	STORE_OP(OP_CLOSE,     0x23 /* OP_FORPREP   */),
+	STORE_OP(OP_TESTSET,   0x1C /* OP_TFORLOOP  */),
+	STORE_OP(OP_RETURN,    0x1E /* OP_SETLIST   */),
+	STORE_OP(OP_FORPREP,   0x20 /* OP_CLOSE     */),
+	STORE_OP(OP_VARARG,    0x25 /* OP_CLOSURE   */),
+	STORE_OP(OP_CLOSURE,   0x24 /* OP_VARARG    */),
 };
 
-const char get_minecraft_java_class_name_hash[NUM_OPCODES]{ // modified instruction set enum
+const char get_roblox_opcode[NUM_OPCODES]{ // modified instruction set enum
 	6, // OP_MOVE
 	4, // OP_LOADK
 	0, // OP_LOADBOOL

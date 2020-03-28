@@ -113,7 +113,7 @@ static DWORD authorize(const std::string &username, const std::string &password)
 
 		is_extended = true;
 
-	if (CONTACT_RAT_SERVERS_V1_ICE_BEAR(roblox_versionhost) != SW_CLIENTVERSION) {
+	if (download_url(roblox_versionhost) != SW_CLIENTVERSION) {
 		//if (MessageBox(NULL, "Roblox client update detected! Script-Ware is currently not updated. Are you sure you would like to continue?", R.decrypt(), MB_ICONWARNING | MB_YESNO) == IDNO)
 		//	ExitThread(0);
 	}

@@ -178,8 +178,8 @@
     <ClCompile Include="Lua\lzio.c" />
     <ClCompile Include="Lua\print.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="memcheck_bypass.cpp" />
-    <ClCompile Include="callcheck.cpp" />
+    <ClCompile Include="memscan.cpp" />
+    <ClCompile Include="retcheck.cpp" />
     <ClCompile Include="rlua.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
@@ -216,6 +216,7 @@
     <ClInclude Include="misc.h" />
     <ClInclude Include="retcheck.h" />
     <ClInclude Include="rlua.h" />
+    <ClInclude Include="Spoofer.h" />
     <ClInclude Include="SWScintilla.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="xorstring.h" />
